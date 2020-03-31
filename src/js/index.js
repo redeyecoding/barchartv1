@@ -16,7 +16,6 @@ const years = '1950 1955 1960 1965 1970 1975 1980 1985 1990 1995 2000 2005 2010 
 const dataURL = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json'
 const fectchData = csv(dataURL)
                         .then(rawGdpData => {                            
-                            const re = /^(\d{4}-\d{2}-\d{2}$|\d*\W\d$)/
                             const rmvChar = /(\"|\]|\[)/g;
                             const rawData = rawGdpData.map(d =>  Object.values(d)
                                                                     .join('')
@@ -36,43 +35,11 @@ const fectchData = csv(dataURL)
                                             .replace(/0$/, ' Billion')
                                     });
                             console.log(convertedFunds)
-                            // gdpData.forEach(d => {
-                            //     const formatMoney =  //Remove Trailing Zero
-                            // });
                             return gdpData;
                         });
+                                          
                             
-                            
 
-                            // Convert money into dollar amount 
-
-
-
-                        .then(gdpData => {
-                            const countryCur = {
-                                us: 'en-US',
-                                jp: 'ja-JP',
-                                dn: 'de-DE'
-                            };
-
-                            const re = /^(\d{4}-\d{2}-\d{2}$|\d*\W\d$)/
-                            const rmvChar = /(\"|\]|\[)/g;
-
-                            //Process RawData
-                            const rawData = gdpData.map(d =>  Object.values(d)
-                                                                    .join('')
-                                                                    .trim()
-                                                                    .replace(rmvChar,''))
-                                                                    .filter(d => d.match(re))
-                            
-                            // Convert money into dollar amount
-                            const formatMoney = Intl.NumberFormat(countryCur.us, { style: 'currency', currency: 'USD' })
-                                                    .format(rawData[417])
-                                                    .replace(/0$/, ' Billion'); //Remove Trailing Zero
-
-                            console.log(rawData)
-
-});
 
 const canvas = select('#chart-container')
                 .append('svg')
