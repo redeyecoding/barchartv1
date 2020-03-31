@@ -15,25 +15,39 @@ const years = '1950 1955 1960 1965 1970 1975 1980 1985 1990 1995 2000 2005 2010 
 
 const dataURL = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json'
 const fectchData = csv(dataURL)
-                        .then(gdpData => {                            
+                        .then(rawGdpData => {                            
                             const re = /^(\d{4}-\d{2}-\d{2}$|\d*\W\d$)/
                             const rmvChar = /(\"|\]|\[)/g;
-                            const rawData = gdpData.map(d =>  Object.values(d)
+                            const rawData = rawGdpData.map(d =>  Object.values(d)
                                                                     .join('')
                                                                     .trim()
                                                                     .replace(rmvChar,''))
-                                                                    .filter(d => d.match(re))
+                            return rawData
+                        })
+                        
+                        // convert Yearly GDP to Strng
+                        .then(data => {
+                            const re = /^\d*\W\d$/;
+                            const gdpData = data.filter(d => d.match(re));
+                            const convertedFunds = gdpData
+                                    .map(annualGdp => 
+                                        { return Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+                                            .format(annualGdp)
+                                            .replace(/0$/, ' Billion')
+                                    });
+                            console.log(convertedFunds)
+                            // gdpData.forEach(d => {
+                            //     const formatMoney =  //Remove Trailing Zero
+                            // });
+                            return gdpData;
+                        });
+                            
+                            
 
-                            // Convert money into dollar amount
-                            const countryCur = {
-                                                us: 'en-US',
-                                                jp: 'ja-JP',
-                                                dn: 'de-DE'
-                            }
-                            const formatMoney = Intl.NumberFormat(countryCur.us, { style: 'currency', currency: 'USD' })
-                                                    .format(datesNmoney[1])
-                                                    .replace(/0$/, ''); //Remove Trailing Zero
-});
+                            // Convert money into dollar amount 
+
+
+
 
 const canvas = select('#chart-container')
                 .append('svg')
