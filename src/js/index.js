@@ -33,10 +33,14 @@ const fectchData = csv(dataURL)
                                         { return Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
                                             .format(annualGdp)
                                             .replace(/0$/, ' Billion')
-                                    });
-                            console.log(convertedFunds)
-                            return gdpData;
-                        });
+                                    })
+                            return [{data: data, convertedFunds:convertedFunds}]
+                        })
+                        .then(gdpDate => {
+                            const re = /^\d{4}\W\d{2}\W\d{2}$/;
+                            const years = gdpDate.map(year => year.data.match(re))
+                            console.log(years)
+                        })
                                           
                             
 
