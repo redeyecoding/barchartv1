@@ -13,12 +13,13 @@ import {
         w: 800,
         h: 400,
         grpX: 50,
-        grpY: 50
+        grpY: 10
     }
+    const ytd = '1950 1955 1960 1965 1970 1975 1980 1985 1990 1995 2000 2005 2010 2015'.split(' ')
     const gdp = d => d.gdp;
     const margins = {top: 20, right:20, bottom:20, left:20}
-    const innerWidth = canvasDemensions.w - (margins.right - margins.left)
-    const innerHeight = canvasDemensions.h - (margins.top - margins.bottom);
+    const innerWidth = canvasDemensions.w - margins.right - margins.left
+    const innerHeight = canvasDemensions.h - margins.top - margins.bottom;
     const chartData = {};
     const rmvChar = /(\"|\]|\[)/g;
     const dateRegex = /^\d{4}\W\d{2}\W\d{2}$/;
@@ -28,7 +29,7 @@ import {
     const gdpAmount = d => d;
     const processData = d => Object.values(d).join('').trim().replace(rmvChar,'')
     const gdpDataURL = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json'
-      
+
     
     csv(gdpDataURL)
         .then(rawGdpData => rawGdpData.map(processData))            
@@ -68,19 +69,14 @@ import {
     
      
     
-        let yScale = scaleLinear()
+        const yScale = scaleLinear()
                         .domain([0, max(Object.values(chartData),gdp)])
-                        .range([0, innerHeight]);
+                        .range([innerHeight, 0]);
     
-        // let xScale = scaleBand()
-        //                 .domain(Object.values(chartData).map((d => d.gdp))
-        //                 .range([0,innerWidth]).padding(.1)
-    
-    
-        console.log(yScale.domain())
-    
-    
-    
+        const xScale = scaleBand()
+                        .domain(Object.values(ytd).map(d => d))
+                        .rangeRound([0,canvasDemensions.w]).padding(0.1)
+
         const svg = select('body')
                             .append('svg')
                             .attr('width', canvasDemensions.w)
@@ -88,17 +84,25 @@ import {
                             .attr('height', canvasDemensions.h)
                               .append('g')
                               .attr('transform', `translate(${canvasDemensions.grpX},${canvasDemensions.grpY})`)
+
+
+      
+        svg.append('g').call(axisLeft(yScale))
+                        .attr('transform', `translate(-1,0)`)
+        svg.append('g').call(axisBottom(xScale))
+                        .attr('transform', `translate(0,360)`)
+                        
     
         const bar = svg.selectAll('rect')
                         .data(Object.values(chartData))
                         .enter()
                         .append('rect')
-                        .attr('x', 100)
-                        .attr('y', 100)
-                        // .attr('x',xScale((d,i) => d[i].year))
-                        // .attr('width', ((d,i) => xScale(d[i].year)))
-                        .attr('y',yScale(d => yScale(d.gdp)))
-                        .attr('height', (d => yScale(d.gdp)))
-                        .attr('fill',  'blue')
+                        .attr('x',xScale(d => d.year))
+                        .attr('width',xScale.bandwidth())
+
+                        .attr('y',d => yScale(d.gdp))
+                        .attr('height', d => innerHeight - yScale(gdp(d)))
+
+                        .attr('class',  'bar')
                         
       });
