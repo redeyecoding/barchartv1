@@ -1,5 +1,11 @@
-$face-color: orange;
+$bar-hover: orange;
+$bar-defaule-color: steelblue;
 
-.face{
-    background-color: $face-color;
+
+.bar {
+    fill: $bar-defaule-color;
+}
+
+.bar:hover{
+    fill:$bar-hover
 }
