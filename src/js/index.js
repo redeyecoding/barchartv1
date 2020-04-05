@@ -66,16 +66,43 @@ import {
             return;
         })
         
+        let newObject = {} ,newArray = [];
+        let quarter = 1;
+         
+        Object.values(chartData).forEach(e => {
+          let q = `Q${quarter}`
+
+          if (newObject.hasOwnProperty(e.year)){
+              quarter += 1
+              newObject[e.year].push({[q]: e.gdp})
+ 
+          } else{
+              quarter += 1
+              newObject[e.year] = [{[q]: e.gdp}];
+              quarter = 0;
+          }
+          return;
+        })
+
+        console.log(newObject)
     
      
     
         const yScale = scaleLinear()
-                        .domain([0, max(Object.values(chartData),gdp)])
+                        .domain([0, max(Object.values(chartData),d => d.gdp)])
                         .range([innerHeight, 0]);
-    
+         
+
         const xScale = scaleBand()
-                        .domain(Object.values(ytd).map(d => d))
-                        .rangeRound([0,canvasDemensions.w]).padding(0.1)
+                        .domain(Object.values(chartData).map(d => d.gdp))
+                        .range([0,innerWidth])
+                        .padding(.2)
+       
+       // const xScale = scaleBand()
+       //                  .domain(ytd.map(d => d))
+       //                  .range([0,innerWidth])
+       //                  .padding(.2)
+
 
         const svg = select('body')
                             .append('svg')
@@ -85,10 +112,11 @@ import {
                               .append('g')
                               .attr('transform', `translate(${canvasDemensions.grpX},${canvasDemensions.grpY})`)
 
-
+        
       
         svg.append('g').call(axisLeft(yScale))
                         .attr('transform', `translate(-1,0)`)
+
         svg.append('g').call(axisBottom(xScale))
                         .attr('transform', `translate(0,360)`)
                         
@@ -97,10 +125,9 @@ import {
                         .data(Object.values(chartData))
                         .enter()
                         .append('rect')
-                        .attr('x',xScale(d => d.year))
+                        .attr('x',d => xScale(d.gdp))
                         .attr('width',xScale.bandwidth())
-
-                        .attr('y',d => yScale(d.gdp))
+                        //.attr('y',d => yScale(d.gdp))
                         .attr('height', d => innerHeight - yScale(gdp(d)))
 
                         .attr('class',  'bar')
