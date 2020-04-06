@@ -29,31 +29,34 @@ import {
     const gdpAmount = d => d;
     const processData = d => Object.values(d).join('').trim().replace(rmvChar,'')
     const gdpDataURL = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json'
+    let newArray = [], newObject = {}
+    let cnt = 1;
 
     
-    csv(gdpDataURL)
-        .then(rawGdpData => rawGdpData.map(processData))            
-        .then(data => {
-          
-        const gdpData = data.map(e => {
-            //GET YEAR
-                if (e.match(dateRegex)) {
-                    const gdpYear = new Date(e);
-                    return gdpYear.getUTCFullYear()
-            
-            //CONVERT TO GDP BILLIONS FOR  HOVER OUTPUT
-                } else if (e.match(gdpRegex)) {
-                    return Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-                                .format(e.match(gdpRegex)[0])
-                                .replace(/0$/, addAbillion)
-                }
-            }).filter(rmvUndef)
-    
-    
-    
-    
+csv(gdpDataURL)
+  .then(rawGdpData => {   
+    const data = rawGdpData.map(processData)
+
+    const gdpData = data.map(e => {
+        //GET YEAR
+            if (e.match(dateRegex)) {
+                const gdpYear = new Date(e);
+                return gdpYear.getUTCFullYear()
+        
+        //CONVERT TO GDP BILLIONS FOR  HOVER OUTPUT
+            } else if (e.match(gdpRegex)) {
+                return Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+                            .format(e.match(gdpRegex)[0])
+                            .replace(/0$/, addAbillion)
+            }
+        }).filter(rmvUndef)
+
+   
         //CONVERT TO FULL YEAR X-AXIS 
         const xAxisYear = gdpData.filter(d => typeof(d) === 'number').map(y => ['year',y])
+
+                //CONVERT TO FULL YEAR X-AXIS 
+        const hoverOutput = gdpData.filter(d => typeof(d) === 'string')
     
         //CONVERT TO GDP Y-AXIS
         const yAxisGDP = data.filter(d => d.match(gdpRegex)).map(d => ['gdp', Math.round(d)]);
@@ -65,38 +68,38 @@ import {
             }
             return;
         })
-        
-        let newObject = {} ,newArray = [];
-        let quarter = 1;
-         
-        Object.values(chartData).forEach(e => {
-          let q = `Q${quarter}`
+        console.log(Object.values(chartData))
+
+
+
+
+        Object.values(chartData).forEach(e => {         
+          let quarter = `Q${cnt}`
 
           if (newObject.hasOwnProperty(e.year)){
-              quarter += 1
-              newObject[e.year].push({[q]: e.gdp})
- 
-          } else{
-              quarter += 1
-              newObject[e.year] = [{[q]: e.gdp}];
-              quarter = 0;
+              newObject[e.year][quarter] = e.gdp
+              newObject[e.year][e.year] = e.year
+              cnt += 1
+
+              if (cnt > 4) {
+                cnt = 1
+              }; 
+          } else{              
+              newObject[e.year] = {[quarter]: e.gdp};
+              cnt += 1
           }
           return;
         })
 
-        console.log(newObject)
-    
-     
-    
+
         const yScale = scaleLinear()
                         .domain([0, max(Object.values(chartData),d => d.gdp)])
-                        .range([innerHeight, 0]);
-         
+                        .range([innerHeight, 0]);         
 
         const xScale = scaleBand()
                         .domain(Object.values(chartData).map(d => d.gdp))
-                        .range([0,innerWidth])
-                        .padding(.2)
+                        .range([0, innerWidth])
+                        .padding(.1)
        
        // const xScale = scaleBand()
        //                  .domain(ytd.map(d => d))
@@ -127,7 +130,7 @@ import {
                         .append('rect')
                         .attr('x',d => xScale(d.gdp))
                         .attr('width',xScale.bandwidth())
-                        //.attr('y',d => yScale(d.gdp))
+                        .attr('y',d => yScale(d.gdp))
                         .attr('height', d => innerHeight - yScale(gdp(d)))
 
                         .attr('class',  'bar')
