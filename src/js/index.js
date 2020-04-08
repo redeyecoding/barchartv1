@@ -5,18 +5,19 @@ import {
     scaleLinear, 
     arc, 
     svg,
-    scaleBand,
+    scaleTime,
     axisBottom,
     axisLeft} from 'd3';
 
     const canvasDemensions = {
-        w: 800,
+        w: 855,
         h: 400,
         grpX: 50,
         grpY: 10
     }
-    const ytd = '1950 1955 1960 1965 1970 1975 1980 1985 1990 1995 2000 2005 2010 2015'.split(' ')
-    const gdp = d => d.gdp;
+
+
+    const gdp = d => d['gdp'];
     const margins = {top: 20, right:20, bottom:20, left:20}
     const innerWidth = canvasDemensions.w - margins.right - margins.left
     const innerHeight = canvasDemensions.h - margins.top - margins.bottom;
@@ -40,8 +41,7 @@ csv(gdpDataURL)
     const gdpData = data.map(e => {
         //GET YEAR
             if (e.match(dateRegex)) {
-                const gdpYear = new Date(e);
-                return gdpYear.getUTCFullYear()
+                return e
         
         //CONVERT TO GDP BILLIONS FOR  HOVER OUTPUT
             } else if (e.match(gdpRegex)) {
@@ -53,13 +53,17 @@ csv(gdpDataURL)
 
    
         //CONVERT TO FULL YEAR X-AXIS 
-        const xAxisYear = gdpData.filter(d => typeof(d) === 'number').map(y => ['year',y])
+        const xAxisYear = gdpData.filter(d => d.match(dateRegex)).map(y => ['year',y])
+       
 
                 //CONVERT TO FULL YEAR X-AXIS 
-        const hoverOutput = gdpData.filter(d => typeof(d) === 'string')
-    
+        const hoverOutput = gdpData.filter(d => !d.match(dateRegex));    
         //CONVERT TO GDP Y-AXIS
         const yAxisGDP = data.filter(d => d.match(gdpRegex)).map(d => ['gdp', Math.round(d)]);
+
+
+
+
     
         xAxisYear.forEach((e,i) => {
             chartData[i] = {
@@ -68,43 +72,52 @@ csv(gdpDataURL)
             }
             return;
         })
-        console.log(Object.values(chartData))
 
 
 
 
-        Object.values(chartData).forEach(e => {         
+    
+           // console.log(chartData)
+        const newObject = {};
+
+        Object.values(chartData).forEach((e,i) => {         
           let quarter = `Q${cnt}`
 
-          if (newObject.hasOwnProperty(e.year)){
-              newObject[e.year][quarter] = e.gdp
-              newObject[e.year][e.year] = e.year
+          let date = new Date(e['year']).getUTCFullYear()
+          
+          if (newObject.hasOwnProperty(date)){
+              newObject[date][quarter] = [e.gdp,hoverOutput[i]]
+              // newObject[date][quarter] = e.gdp,hoverOutput[i]]
+              newObject[date][e.year] = e.year
               cnt += 1
 
               if (cnt > 4) {
                 cnt = 1
               }; 
           } else{              
-              newObject[e.year] = {[quarter]: e.gdp};
+              newObject[date] = {
+                                    [quarter]: [e.gdp,hoverOutput[i]]                                     
+                              };
               cnt += 1
           }
           return;
         })
 
 
+        const xScaleDate = gdpData.filter(d => d.match(dateRegex))
+
         const yScale = scaleLinear()
                         .domain([0, max(Object.values(chartData),d => d.gdp)])
                         .range([innerHeight, 0]);         
+            
+        const xScale = scaleTime()
+                    .domain([new Date(xScaleDate[0]), new Date(xScaleDate[xScaleDate.length - 1])])
+                    .range([0, 800]);
+        
+        console.log(xScale)
 
-        const xScale = scaleBand()
-                        .domain(Object.values(chartData).map(d => d.gdp))
-                        .range([0, innerWidth])
-                        .padding(.1)
-       
-       // const xScale = scaleBand()
-       //                  .domain(ytd.map(d => d))
-       //                  .range([0,innerWidth])
-       //                  .padding(.2)
+        const xAxisTickGenerator = axisBottom(xScale)
+        const yAxisTickGenerator = axisLeft(yScale)
 
 
         const svg = select('body')
@@ -115,24 +128,27 @@ csv(gdpDataURL)
                               .append('g')
                               .attr('transform', `translate(${canvasDemensions.grpX},${canvasDemensions.grpY})`)
 
-        
-      
-        svg.append('g').call(axisLeft(yScale))
-                        .attr('transform', `translate(-1,0)`)
 
-        svg.append('g').call(axisBottom(xScale))
+        svg.append('g').call(yAxisTickGenerator)
+                        .attr('transform', `translate(0,0)`)
+                        .attr('id', 'y-axis')
+
+ 
+        svg.append('g').call(xAxisTickGenerator)
                         .attr('transform', `translate(0,360)`)
-                        
-    
-        const bar = svg.selectAll('rect')
+                        .attr('id', 'x-axis')
+                                             
+        
+        const bar = svg
+                        .selectAll('rect')
                         .data(Object.values(chartData))
                         .enter()
+                        .append('g').attr('transform', 'translate(0,0)')
                         .append('rect')
-                        .attr('x',d => xScale(d.gdp))
-                        .attr('width',xScale.bandwidth())
-                        .attr('y',d => yScale(d.gdp))
+                        .attr('x',d => xScale(new Date(d.year)))
+                        .attr('width', 2.2)
+                        .attr('y',d => yScale(d['gdp']))
                         .attr('height', d => innerHeight - yScale(gdp(d)))
-
-                        .attr('class',  'bar')
+                        .attr('class', 'bar')
                         
       });
