@@ -32,7 +32,7 @@ import {
     let newArray = [], newObject = {}
     let cnt = 1;
 
-    const chartData = {
+    let chartData = {
           displayData:{}
     };
 
@@ -99,12 +99,12 @@ csv(gdpDataURL)
 
 
         
-        chartDate = Object.values(chartData)
+        chartData = Object.values(chartData)
 
         const xScaleDate = gdpData.filter(d => d.match(dateRegex))
 
         const yScale = scaleLinear()
-                        .domain([0, max(chartDate,d => d['date-gdp'])])
+                        .domain([0, max(chartData,d => d['date-gdp'])])
                         .range([innerHeight, 0]);         
             
         const xScale = scaleTime()
@@ -139,7 +139,7 @@ csv(gdpDataURL)
                                              
         const bar = svg .append('g').attr('transform', 'translate(0,-10)')
                         .selectAll('rect')
-                        .data(chartDate)
+                        .data(chartData)
                         .enter()
                         .append('g').attr('transform', 'translate(0,10)')
                         .append('rect')
