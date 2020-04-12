@@ -7,5 +7,9 @@ $bar-defaule-color: steelblue;
 }
 
 .bar:hover{
-    fill:$bar-hover
+    fill:$bar-hover;
+}
+
+.toolTip{
+    text-decoration: underline;
 }

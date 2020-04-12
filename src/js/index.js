@@ -3,7 +3,7 @@ import '../styles/style.scss'
 import { min, max, range, csv, line } from 'd3';
 import { 
     scaleLinear, 
-    arc, 
+    mouse, 
     svg,
     scaleTime,
     axisBottom,
@@ -136,7 +136,18 @@ csv(gdpDataURL)
         svg.append('g').call(xAxisTickGenerator)
                         .attr('transform', `translate(0,360)`)
                         .attr('id', 'x-axis')
-                                             
+
+        var toolTip = svg.append('g')
+                           .attr('class', toolTip)
+                           .style('display', 'none')
+                           
+        toolTip.append('text')
+               .attr('x', 15)
+               .attr('dy', '1.2em')
+               .style('font-size', '1.25em')
+               .attr('font-weight', 'bold')
+
+
         const bar = svg .append('g').attr('transform', 'translate(0,-10)')
                         .selectAll('rect')
                         .data(chartData)
@@ -148,10 +159,18 @@ csv(gdpDataURL)
                         .attr('y',d => yScale(d['date-gdp']))
                         .attr('height', d => innerHeight - yScale(gdp(d)))
                         .attr('class', 'bar')
-                        .on('mouseover',function(d){
-                              let toolTipHover = d['displayData'][0][0] + ' ' + d['displayData'][0][1]
-                              console.log(toolTipHover)
-                              //return hoverOut;
+                        .on('mouseover',function(d) {
+                              toolTip.style('display', null)
                         })
-                        //.on("mouseover", function(){select(this).style("fill", "green");})
+                        .on('mouseout', function(d){
+                              toolTip.style('display', 'none')
+                        })
+                        .on('mousemove', function(d){
+                              const xPosition = mouse(this)[0] - 15;
+                              const yPosition = mouse(this)[1] + 55;
+
+                              toolTip.attr('transform', `translate(${xPosition}, ${yPosition})`)
+                              toolTip.select('text').text('TESTING 123')
+                        });
+                        
 });
