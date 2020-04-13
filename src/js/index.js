@@ -3,21 +3,19 @@ import '../styles/style.scss'
 import { min, max, range, csv, line } from 'd3';
 import { 
     scaleLinear, 
-    mouse, 
-    svg,
     scaleTime,
     axisBottom,
     axisLeft} from 'd3';
 
     const canvasDemensions = {
-        w: 855,
+        w: 950,
         h: 400,
-        grpX: 50,
+        grpX: 80,
         grpY: 10
     }
 
 
-    const gdp = d => d['date-gdp'];
+    const gdp = d => d['data-gdp'];
     const margins = {top: 20, right:20, bottom:20, left:20}
     const innerWidth = canvasDemensions.w - margins.right - margins.left
     const innerHeight = canvasDemensions.h - margins.top - margins.bottom;    
@@ -26,7 +24,6 @@ import {
     const gdpRegex = /^\d+(\W\d+)?$/;
     const rmvUndef = d => d !== undefined;
     const addAbillion = match => ' Billion';
-    const gdpAmount = d => d;
     const processData = d => Object.values(d).join('').trim().replace(rmvChar,'')
     const gdpDataURL = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json'
     let newArray = [], newObject = {}
@@ -56,13 +53,13 @@ csv(gdpDataURL)
 
    
         //CONVERT TO FULL YEAR X-AXIS 
-        const xAxisYear = gdpData.filter(d => d.match(dateRegex)).map(y => ['date-date',y])
+        const xAxisYear = gdpData.filter(d => d.match(dateRegex)).map(y => ['data-data',y])
        
 
                 //CONVERT TO FULL YEAR X-AXIS 
         const hoverOutput = gdpData.filter(d => !d.match(dateRegex));    
         //CONVERT TO GDP Y-AXIS
-        const yAxisGDP = data.filter(d => d.match(gdpRegex)).map(d => ['date-gdp', Math.round(d)]);
+        const yAxisGDP = data.filter(d => d.match(gdpRegex)).map(d => ['data-gdp', Math.round(d)]);
             
         xAxisYear.forEach((e,i) => {
             let quarter = `Q${cnt}`;
@@ -104,7 +101,7 @@ csv(gdpDataURL)
         const xScaleDate = gdpData.filter(d => d.match(dateRegex))
 
         const yScale = scaleLinear()
-                        .domain([0, max(chartData,d => d['date-gdp'])])
+                        .domain([0, max(chartData,d => d['data-gdp'])])
                         .range([innerHeight, 0]);         
             
         const xScale = scaleTime()
@@ -115,37 +112,31 @@ csv(gdpDataURL)
         const yAxisTickGenerator = axisLeft(yScale)
 
 
-        const svg = select('body')
+        const svg = select('div')
+                            .attr('class','inner-chart-container')
                             .append('svg')
                             .attr('width', canvasDemensions.w)
                             .attr('id', 'canvas')
                             .attr('height', canvasDemensions.h)
                               .append('g')
                               .attr('transform', `translate(${canvasDemensions.grpX},${canvasDemensions.grpY})`)
+                              .attr('id', 'chart-grid')
+
+                              
 
       
         svg.append('g').call(yAxisTickGenerator)
                         .attr('transform', `translate(0,0)`)
                         .attr('id', 'y-axis')
-                        .append('text')
-                           .attr('class', 'side-title-gdp')
-                           .attr('transform', 'translate(25,40) rotate(-90)')
-                           .text('Gross Domestic Product')                             
-
+                        // .append('text')
+                        //    //.attr('class', 'side-title-gdp')
+                        //    .attr('transform', 'translate(100,40)')
+                        //    .text('Gross Domestic Product')                             
+       
  
         svg.append('g').call(xAxisTickGenerator)
                         .attr('transform', `translate(0,360)`)
                         .attr('id', 'x-axis')
-
-        var toolTip = svg.append('g')
-                           .attr('class', toolTip)
-                           .style('display', 'none')
-                           
-        toolTip.append('text')
-               .attr('x', 15)
-               .attr('dy', '1.2em')
-               .style('font-size', '1.25em')
-               .attr('font-weight', 'bold')
 
 
         const bar = svg .append('g').attr('transform', 'translate(0,-10)')
@@ -154,23 +145,12 @@ csv(gdpDataURL)
                         .enter()
                         .append('g').attr('transform', 'translate(0,10)')
                         .append('rect')
-                        .attr('x',d => xScale(new Date(d['date-date'])))
+                        .attr('x',d => xScale(new Date(d['data-data'])))
                         .attr('width', 2.2)
-                        .attr('y',d => yScale(d['date-gdp']))
+                        .attr('y',d => yScale(d['data-gdp']))
                         .attr('height', d => innerHeight - yScale(gdp(d)))
                         .attr('class', 'bar')
-                        .on('mouseover',function(d) {
-                              toolTip.style('display', null)
-                        })
-                        .on('mouseout', function(d){
-                              toolTip.style('display', 'none')
-                        })
-                        .on('mousemove', function(d){
-                              const xPosition = mouse(this)[0] - 15;
-                              const yPosition = mouse(this)[1] + 55;
-
-                              toolTip.attr('transform', `translate(${xPosition}, ${yPosition})`)
-                              toolTip.select('text').text('TESTING 123')
-                        });
-                        
+                        .append('title').attr('class','toolTip')
+                        .text(d => d['displayData'][0].join(' '))
+                 
 });

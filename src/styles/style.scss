@@ -1,5 +1,7 @@
-$bar-hover: orange;
-$bar-defaule-color: steelblue;
+$bar-hover: rgb(235, 232, 226);
+$bar-defaule-color: rgb(233, 112, 13);
+$bar-hover-text-color : rgb(192, 11, 11);
+
 
 
 .bar {
@@ -12,4 +14,17 @@ $bar-defaule-color: steelblue;
 
 .toolTip{
     text-decoration: underline;
+}
+
+.chart-title {
+    font-size: 1.23em
+}
+
+.inner-chart-container {
+    position: relative;
+    top: 200px;
+    height: 700;
+    width: 1000;
+    border-radius: 6px;
+    background-color: rgb(187, 180, 180);
 }
