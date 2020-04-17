@@ -23,7 +23,7 @@ fetch(gdpDataURL)
                 const maxDate = new Date(gdpData[gdpData.length - 1][0]);
 
 
-                // PROCESS DATA FOR TOOLTIP OUTPUT
+                // PROCESS DATA FOR tooltip OUTPUT
                 const processData = (function() {
                         let yearPlaceHolder, quarter = 1;
                         const yearDateQuarter = gdpData.map(e => {
@@ -93,11 +93,11 @@ fetch(gdpDataURL)
                         .attr('id', 'x-axis')
                         .call(xAxisGenerator)
 
-                const toolTip = svg.append('g')
-                                        .attr('class', 'tooltip')
+                const tooltip = svg.append('g')
+                                        .attr('id', 'tooltip')
                                         .style('display', 'none')
 
-                toolTip.append('text')
+                tooltip.append('text')
                         .attr('x', 15)
                         .attr('dy', '1.2em')
                         .style('font-size', '1.25em')
@@ -115,15 +115,15 @@ fetch(gdpDataURL)
                         .attr('y',function(d){ return yScale(d[1]) })
                         .attr('class', 'bar')
                         .on('mouseover', function(d,i,a){
-                                toolTip.style('display', null);
+                                tooltip.style('display', null);
                         })
                         .on('mouseout', function(d,i,a){
-                                toolTip.style('display','block');
+                                tooltip.style('display','block');
                         })
                         .on('mousemove', function(d,i,a){
                                 const xPosition = mouse(this)[0] - 15;
                                 const yPosition = mouse(this)[1] - 55;
-                                toolTip.attr('transform', `translate(${xPosition}, ${yPosition})`)
-                                toolTip.select('text').text(`${d[2]}  ${d[3]}`)
+                                tooltip.attr('transform', `translate(${xPosition}, ${yPosition})`)
+                                tooltip.select('text').text(`${d[2]}  ${d[3]}`)
                         })
         })
