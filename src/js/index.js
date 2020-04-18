@@ -3,6 +3,8 @@ import {
     max,
     scaleLinear,
     mouse,
+    event,       
+
     select, 
     scaleTime,
     axisBottom,
@@ -10,7 +12,7 @@ import {
 
 const gdpDataURL = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json'
 const svgCanvas = {width: 900, height: 600};
-const chartPadding = {top: 70, right: 60, bottom: 40 ,left: 70, bar: 1};
+const chartPadding = {top: 70, right: 60, bottom: 40 ,left: 70, bar: .9};
 const innerWidth = svgCanvas.width - chartPadding.right  - chartPadding.left;
 const innerHeight = svgCanvas.height - chartPadding.top - chartPadding.bottom;
 
@@ -91,18 +93,16 @@ fetch(gdpDataURL)
                 chartGroup.append('g')
                         .attr('transform', `translate(0, ${innerHeight})`)
                         .attr('id', 'x-axis')
-                        .call(xAxisGenerator)
+                        .call(xAxisGenerator);
 
-                const tooltip = svg.append('g')
-                                        .attr('id', 'tooltip')
-                                        .style('display', 'none')
-
-                tooltip.append('text')
-                        .attr('x', 15)
-                        .attr('dy', '1.2em')
-                        .style('font-size', '1.25em')
-                                        
-
+ 
+                const toolTip = select("body")
+                                .append("div")
+                                .style("position", "absolute")
+                                .style("z-index", "10")
+                                .attr('class', 'div-tool-tip')
+                                .style('visibility', 'hidden')
+                                                            
                 chartGroup.selectAll('rect')
                         .data(data)
                         .enter()
@@ -110,20 +110,33 @@ fetch(gdpDataURL)
                         .attr('data-date', function(d){ return d[0]})
                         .attr('data-gdp', function(d){ return d[1]})
                         .attr('x',function(d){ return xScale(new Date(d[0]) )})
-                        .attr('width', svgCanvas.width / gdpData.length - chartPadding.bar)
+                        .attr('width', svgCanvas.width / gdpData.length )
                         .attr('height', function(d){ return  innerHeight - yScale(d[1]) })
                         .attr('y',function(d){ return yScale(d[1]) })
                         .attr('class', 'bar')
-                        .on('mouseover', function(d,i,a){
-                                tooltip.style('display', null);
+                        .on('mouseover', function(d){
+                                toolTip.attr('id', 'tooltip')
+                                       .attr('data-date', d[0]) 
+                                       .style('display', null)                                      
+                                       .transition()
+                                       .delay(50)
+                                       .style('visibility', 'visible')
+                                       .style('opacity',10)
+                                       .duration(1000)	
                         })
-                        .on('mouseout', function(d,i,a){
-                                tooltip.style('display','block');
-                        })
-                        .on('mousemove', function(d,i,a){
-                                const xPosition = mouse(this)[0] - 15;
-                                const yPosition = mouse(this)[1] - 55;
-                                tooltip.attr('transform', `translate(${xPosition}, ${yPosition})`)
-                                tooltip.select('text').text(`${d[2]}  ${d[3]}`)
-                        })
-        })
+                        .on('mousemove', function(d){
+                                toolTip.html(d[2] + '<br/>' + d[3])	
+                                       .style("left", (event.pageX + 10) + "px")		
+                                       .style("top", (event.pageY - 100) + "px")
+                        })	
+                        .on('mouseout', function(d){
+                                toolTip.style('display', 'none')
+                                        .transition()
+                                        .delay(50)
+                                        .style('visibility', 'hidden')
+                                        .style('opacity',10)
+                                        .duration(1000)	
+                         })
+
+
+        });
